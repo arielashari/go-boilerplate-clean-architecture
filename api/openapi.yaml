@@ -1,0 +1,590 @@
+openapi: 3.0.3
+info:
+  title: Go Boilerplate Clean Architecture API
+  description: API documentation for Go Boilerplate Clean Architecture project
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Development
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: User Login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginWebResponse'
+  /auth/register:
+    post:
+      operationId: register
+      summary: User Registration
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterWebResponse'
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      summary: Refresh Access Token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: User Logout
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebResponse'
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [User]
+      summary: List Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: true
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page for pagination
+          required: true
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          description: Search term for filtering users by name or email
+          required: false
+          schema:
+            type: string
+        - name: role_id
+          in: query
+          description: Filter users by role ID
+          required: false
+          schema:
+            type: string
+        - name: sort_by
+          in: query
+          description: Field to sort by (e.g., created_at)
+          required: false
+          schema:
+            type: string
+        - name: sort_dir
+          in: query
+          description: Sort direction (asc or desc)
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWebResponse'
+    post:
+      operationId: createUser
+      tags: [User]
+      summary: Create User
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserWebResponse'
+
+  /users/{id}:
+    get:
+      operationId: getUserByID
+      tags: [User]
+      summary: Get User by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserByIDWebResponse'
+    patch:
+      operationId: updateUser
+      tags: [User]
+      summary: Update User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateUserWebResponse'
+    delete:
+      operationId: deleteUser
+      tags: [User]
+      summary: Delete User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserWebResponse'
+  
+  /roles:
+    get:
+      operationId: listRoles
+      tags: [Role]
+      summary: List Roles
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: Number of items per page for pagination
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWebResponse'
+    post:
+      operationId: createRole
+      tags: [Role]
+      summary: Create Role
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRoleWebResponse'
+
+  /roles/{id}:
+    get:
+      operationId: getRoleByID
+      tags: [Role]
+      summary: Get Role by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Role ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRoleByIDWebResponse'
+                
+    patch:
+      operationId: updateRole
+      tags: [Role]
+      summary: Update Role
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Role ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateRoleWebResponse'
+
+    delete:
+      operationId: deleteRole
+      tags: [Role]
+      summary: Delete Role
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Role ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRoleWebResponse'
+
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    WebResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          example: "OK"
+        message:
+          type: string
+          example: "Operation successful"
+        errors:
+          type: object
+    PaginatedWebResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          example: "OK"
+        message:
+          type: string
+          example: "Operation successful"
+        paging:
+          $ref: '#/components/schemas/PageMetadata'
+        errors:
+          type: object
+
+    PageMetadata:
+      type: object
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        total_item: { type: integer, format: int64 }
+        total_page: { type: integer, format: int64 }
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+
+    UserResponse:
+      type: object
+      properties:
+        first_name: { type: string }
+        last_name: { type: string }
+        email: { type: string, format: email }
+        phone_prefix: { type: string }
+        phone_number: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        deleted_at: { type: string, format: date-time, nullable: true }
+
+    RoleResponse:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        deleted_at: { type: string, format: date-time, nullable: true }
+
+    LoginWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AuthResponse'
+
+    RegisterWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserResponse'
+
+    CreateUserWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserResponse'
+
+    UpdateUserWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserResponse'
+
+    DeleteUserWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+
+    ListUsersWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserResponse'
+
+    GetUserByIDWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserResponse'
+
+    GetRoleByIDWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RoleResponse'
+
+    ListRolesWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/RoleResponse'
+
+    CreateRoleWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RoleResponse'
+    
+    DeleteRoleWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+
+    UpdateRoleWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RoleResponse'
+
+
+    LoginRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+      required:
+        - email
+        - password
+
+    RegisterRequest:
+      type: object
+      properties:
+        email: { type: string, format: email, example: "user@example.com" }
+        password: { type: string, format: password, minimum: 8, example: "P@ssw0rd" }
+        first_name: { type: string, example: "John" }
+        last_name: { type: string, example: "Doe" }
+        phone_prefix: { type: string, example: "+62" }
+        phone_number: { type: string, example: "812345678" }
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+    
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refresh_token: { type: string }
+      required:
+        - refresh_token
+    
+    CreateUserRequest:
+      type: object
+      properties:
+        email: { type: string, format: email, example: "user@example.com" }
+        password: { type: string, format: password, minimum: 8, example: "P@ssw0rd" }
+        first_name: { type: string, example: "John" }
+        last_name: { type: string, example: "Doe" }
+        phone_prefix: { type: string, example: "+62" }
+        phone_number: { type: string, example: "812345678" }
+        role_id: { type: string, example: "role_id_example" }
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+        - phone_prefix
+        - phone_number
+        - role_id
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email: { type: string, format: email, example: "user@example.com" }
+        first_name: { type: string, example: "John" }
+        last_name: { type: string, example: "Doe" }
+        phone_prefix: { type: string, example: "+62" }
+        phone_number: { type: string, example: "812345678" }
+
+    
+    CreateRoleRequest:
+      type: object
+      properties:
+        name: { type: string, example: "admin" }
+        description: { type: string, example: "Administrator role with full permissions" }
+      required:
+        - name
+    
+    UpdateRoleRequest:
+      type: object
+      properties:
+        name: { type: string, example: "admin" }
+        description: { type: string, example: "Administrator role with full permissions" }

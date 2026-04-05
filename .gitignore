@@ -1,0 +1,56 @@
+# --- Build Outputs & Temp Files ---
+# Ignores the 'air' live-reloading build outputs and logs (from your tree)
+/tmp/
+# Ignore standard binary output directories (if you run go build)
+/bin/
+/dist/
+*.exe
+
+# --- Configuration & Secrets ---
+# Ignore all environment-specific configs to prevent leaking DB credentials
+/configs/config.*.yaml
+# BUT forcefully track the example config so other devs know the structure
+!/configs/config.example.yaml
+# Standard env files just in case
+.env
+.env.*
+
+# --- Go Specific ---
+/vendor/
+*.test
+*.out
+*.prof
+coverage.txt
+coverage.html
+
+# --- Code Generation ---
+# Note: We DO NOT ignore internal/repository/postgres/sqlc/*.go
+# It is standard Go practice to commit sqlc/oapi-codegen generated files.
+
+# --- IDEs & Editors ---
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# GoLand / IntelliJ
+.idea/
+*.iwb
+*.iws
+*.iml
+
+# Vim / Neovim (Common on Arch Linux)
+*~
+*.swp
+*.swo
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+Session.vim
+.netrwhist
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db

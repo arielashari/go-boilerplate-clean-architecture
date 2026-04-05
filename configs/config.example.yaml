@@ -1,0 +1,23 @@
+app:
+  name: "myapp"
+  port: 8080
+  env: "dev"
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  name: "myapp_dev"
+  sslmode: "disable"
+
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: "dev-secret-not-for-production"
+  access_expire_minutes: 15
+  refresh_expire_hours: 168
