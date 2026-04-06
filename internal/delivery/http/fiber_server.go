@@ -8,15 +8,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/configs"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/middleware"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/response"
-	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/router"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/entity"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/apperror"
 	customervalidator "github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/helmet"
+	"github.com/gofiber/fiber/v3/middleware/limiter"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 )
 
@@ -46,7 +50,25 @@ func NewFiberServer(cfg configs.Config, authRepo entity.AuthRedisRepository) Ser
 	}
 
 	fs.app = fiber.New(fiberConfig)
+
+	fs.app.Use(helmet.New())
+	fs.app.Use(cors.New(cors.Config{
+		AllowOrigins: cfg.CORS.AllowOrigins,
+		AllowHeaders: cfg.CORS.AllowHeaders,
+		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+	}))
+	fs.app.Use(limiter.New(limiter.Config{
+		Max:        cfg.RateLimit.MaxRequests,
+		Expiration: time.Duration(cfg.RateLimit.ExpirationSeconds) * time.Second,
+		KeyGenerator: func(c fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c fiber.Ctx) error {
+			return response.Error(c, fiber.StatusTooManyRequests, "too many requests", nil)
+		},
+	}))
 	fs.app.Use(requestid.New())
+	fs.app.Use(middleware.MetricsMiddleware())
 	fs.app.Use(middleware.LoggerMiddleware(&fs.cfg.App))
 
 	return fs
@@ -54,7 +76,6 @@ func NewFiberServer(cfg configs.Config, authRepo entity.AuthRedisRepository) Ser
 
 func (fs *fiberServer) Start() {
 	serverErrors := make(chan error, 1)
-
 	go func() {
 		slog.Info("Server is starting", "port", fs.cfg.App.Port)
 		err := fs.app.Listen(fmt.Sprintf(":%d", fs.cfg.App.Port), fiber.ListenConfig{
@@ -72,16 +93,21 @@ func (fs *fiberServer) Start() {
 	case err := <-serverErrors:
 		slog.Error("Startup failed", "error", err)
 	case sig := <-shutdown:
-		slog.Info("Signal received", "signal", sig)
+		slog.Info("Signal received, shutting down...", "signal", sig)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := fs.app.ShutdownWithContext(ctx); err != nil {
+			slog.Error("Graceful shutdown failed", "error", err)
+		} else {
+			slog.Info("Server shutdown complete")
+		}
 	}
 }
 
 func (fs *fiberServer) GetFiberApp() *fiber.App {
 	return fs.app
-}
-
-func (fs *fiberServer) RegisterRoutes(r *router.Router) {
-	r.Setup()
 }
 
 func (fs *fiberServer) GlobalErrorHandler(c fiber.Ctx, err error) error {
@@ -95,7 +121,7 @@ func (fs *fiberServer) GlobalErrorHandler(c fiber.Ctx, err error) error {
 		return response.Error(c, fiber.StatusBadRequest, "Validation failed", formatted)
 	}
 
-	if appErr, ok := entity.AsAppError(err); ok {
+	if appErr, ok := apperror.As(err); ok {
 		statusCode := mapCodeToStatus(appErr.Code)
 		fs.logAppError(appErr, statusCode)
 		return response.Error(c, statusCode, appErr.Message, nil)
@@ -114,28 +140,28 @@ func (fs *fiberServer) GlobalErrorHandler(c fiber.Ctx, err error) error {
 	return response.Error(c, fiber.StatusInternalServerError, "Internal server error", nil)
 }
 
-func mapCodeToStatus(code entity.ErrorCode) int {
+func mapCodeToStatus(code apperror.ErrorCode) int {
 	switch code {
-	case entity.CodeValidation:
+	case apperror.CodeValidation:
 		return fiber.StatusBadRequest
-	case entity.CodeUnauthorized, entity.CodeInvalidCreds:
+	case apperror.CodeUnauthorized, apperror.CodeInvalidCreds:
 		return fiber.StatusUnauthorized
-	case entity.CodeForbidden:
+	case apperror.CodeForbidden:
 		return fiber.StatusForbidden
-	case entity.CodeNotFound:
+	case apperror.CodeNotFound:
 		return fiber.StatusNotFound
-	case entity.CodeConflict, entity.CodeEmailTaken:
+	case apperror.CodeConflict, apperror.CodeEmailTaken:
 		return fiber.StatusConflict
-	case entity.CodeTimeout:
+	case apperror.CodeTimeout:
 		return fiber.StatusRequestTimeout
-	case entity.CodeUnavailable:
+	case apperror.CodeUnavailable:
 		return fiber.StatusServiceUnavailable
 	default:
 		return fiber.StatusInternalServerError
 	}
 }
 
-func (fs *fiberServer) logAppError(appErr *entity.AppError, status int) {
+func (fs *fiberServer) logAppError(appErr *apperror.AppError, status int) {
 	level := slog.LevelWarn
 	if status >= 500 {
 		level = slog.LevelError

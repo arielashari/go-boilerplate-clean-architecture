@@ -128,6 +128,13 @@ func (r *userPostgresRepository) GetUserForAuth(ctx context.Context, email strin
 	}, nil
 }
 
+func (r *userPostgresRepository) getQueries(ctx context.Context) *sqlc.Queries {
+	if tx := extractTx(ctx); tx != nil {
+		return sqlc.New(tx)
+	}
+	return r.queries
+}
+
 func (r *userPostgresRepository) toEntity(row sqlc.User, role *sqlc.Role) *entity.User {
 	user := &entity.User{
 		ID:          row.ID,
@@ -168,7 +175,7 @@ func (r *userPostgresRepository) mapUserQueryToParams(q entity.UserQuery) sqlc.L
 		Limit:   int32(q.Limit),
 		Offset:  int32(offset),
 		Search:  pgtype.Text{String: q.Search, Valid: q.Search != ""},
-		RoleID:  toUUID(q.RoleID), // Helper function
+		RoleID:  toUUID(q.RoleID),
 		SortBy:  q.SortBy,
 		SortDir: q.SortDir,
 	}

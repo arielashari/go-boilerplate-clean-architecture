@@ -7,10 +7,12 @@ import (
 )
 
 type Config struct {
-	App      AppConfig
-	Database DatabaseConfig
-	Redis    RedisConfig
-	JWT      JWTConfig
+	App       AppConfig
+	Database  DatabaseConfig
+	Redis     RedisConfig
+	JWT       JWTConfig
+	RateLimit RateLimitConfig
+	CORS      CORSConfig
 }
 
 type AppConfig struct {
@@ -44,6 +46,16 @@ type JWTConfig struct {
 	Secret               string `mapstructure:"secret"`
 	AccessExpireMinutes  int    `mapstructure:"access_expire_minutes"`
 	RefreshExpireMinutes int    `mapstructure:"refresh_expire_minutes"`
+}
+
+type RateLimitConfig struct {
+	MaxRequests       int `mapstructure:"max_requests"`
+	ExpirationSeconds int `mapstructure:"expiration_seconds"`
+}
+
+type CORSConfig struct {
+	AllowOrigins []string `mapstructure:"allow_origins"`
+	AllowHeaders []string `mapstructure:"allow_headers"`
 }
 
 func Load() (*Config, error) {

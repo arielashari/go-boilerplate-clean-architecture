@@ -47,6 +47,7 @@ func NewApp(cfg *configs.Config) *App {
 		Redis:    redis,
 	}
 
+	transactor := postgres.NewTransactor(pg)
 	userRepo := postgres.NewUserPostgresRepository(pg)
 	roleRepo := postgres.NewRolePostgresRepository(pg)
 	authRepo := _redis.NewAuthRedisRepository(redis)
@@ -54,7 +55,7 @@ func NewApp(cfg *configs.Config) *App {
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	roleUseCase := usecase.NewRoleUseCase(roleRepo)
 
-	authUseCase := usecase.NewAuthUseCase(authRepo, userRepo, cfg)
+	authUseCase := usecase.NewAuthUseCase(authRepo, userRepo, transactor, cfg)
 
 	authHandler := handler.NewAuthHandler(authUseCase)
 	userHandler := handler.NewUserHandler(userUseCase)

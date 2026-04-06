@@ -9,6 +9,7 @@ import (
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/entity"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/model"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/model/mapper"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/apperror"
 	_jwt "github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/jwt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -26,13 +27,15 @@ type AuthUseCase interface {
 type authUseCase struct {
 	authRepository entity.AuthRedisRepository
 	userRepository entity.UserPostgresRepository
+	transactor     entity.Transactor
 	cfg            *configs.Config
 }
 
-func NewAuthUseCase(authRepo entity.AuthRedisRepository, userRepo entity.UserPostgresRepository, cfg *configs.Config) AuthUseCase {
+func NewAuthUseCase(authRepo entity.AuthRedisRepository, userRepo entity.UserPostgresRepository, transactor entity.Transactor, cfg *configs.Config) AuthUseCase {
 	return &authUseCase{
 		authRepository: authRepo,
 		userRepository: userRepo,
+		transactor:     transactor,
 		cfg:            cfg,
 	}
 }
@@ -50,14 +53,14 @@ func (a *authUseCase) Login(ctx context.Context, request *model.LoginRequest) (*
 
 	td, err := _jwt.GenerateTokenPair(user.ID, &a.cfg.JWT)
 	if err != nil {
-		return nil, entity.NewAppError(entity.CodeInternal, "failed to generate tokens").
+		return nil, apperror.New(apperror.CodeInternal, "failed to generate tokens").
 			WithInternal(err).
 			WithOperation("AuthUseCase.Login.GenerateTokens")
 	}
 
 	err = a.authRepository.SetSession(ctx, user.ID, td.TokenID, time.Hour*24*7)
 	if err != nil {
-		return nil, entity.NewAppError(entity.CodeInternal, "failed to create session").
+		return nil, apperror.New(apperror.CodeInternal, "failed to create session").
 			WithInternal(err).
 			WithOperation("AuthUseCase.Login.SetSession")
 	}
@@ -78,7 +81,7 @@ func (a *authUseCase) Register(ctx context.Context, request *model.RegisterReque
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, entity.NewAppError(entity.CodeInternal, "failed to hash password").
+		return nil, apperror.New(apperror.CodeInternal, "failed to hash password").
 			WithInternal(err).
 			WithOperation("AuthUseCase.Register.HashPassword")
 	}
@@ -94,7 +97,11 @@ func (a *authUseCase) Register(ctx context.Context, request *model.RegisterReque
 		RoleID:      request.RoleID,
 	}
 
-	createdUser, err := a.userRepository.Create(ctx, user)
+	var createdUser *entity.User
+	err = a.transactor.WithTx(ctx, func(ctx context.Context) error {
+		createdUser, err = a.userRepository.Create(ctx, user)
+		return err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -144,32 +151,26 @@ func (a *authUseCase) Refresh(ctx context.Context, refreshToken string) (*model.
 
 	isValid, err := a.authRepository.CheckSession(ctx, userID, tokenID)
 	if err != nil {
-		return nil, entity.NewAppError(entity.CodeInternal, "failed to validate session").
+		return nil, apperror.New(apperror.CodeInternal, "failed to validate session").
 			WithInternal(err).
 			WithOperation("AuthUseCase.Refresh.CheckSession")
 	}
 
 	if !isValid {
-		return nil, entity.ErrUnauthorized.WithOperation("AuthUseCase.Refresh.SessionInvalid")
+		return nil, apperror.New(apperror.CodeUnauthorized, "invalid session").
+			WithOperation("AuthUseCase.Refresh.SessionInvalid")
 	}
 
 	td, err := _jwt.GenerateTokenPair(userID, &a.cfg.JWT)
 	if err != nil {
-		return nil, entity.NewAppError(entity.CodeInternal, "failed to generate tokens").
+		return nil, apperror.New(apperror.CodeInternal, "failed to generate tokens").
 			WithInternal(err).
 			WithOperation("AuthUseCase.Refresh.GenerateTokens")
 	}
 
 	err = a.authRepository.SetSession(ctx, userID, td.TokenID, time.Hour*24*7)
 	if err != nil {
-		return nil, entity.NewAppError(entity.CodeInternal, "failed to update session").
-			WithInternal(err).
-			WithOperation("AuthUseCase.Refresh.SetSession")
-	}
-
-	err = a.authRepository.SetSession(ctx, userID, td.TokenID, time.Hour*24*7)
-	if err != nil {
-		return nil, entity.NewAppError(entity.CodeInternal, "failed to update session").
+		return nil, apperror.New(apperror.CodeInternal, "failed to update session").
 			WithInternal(err).
 			WithOperation("AuthUseCase.Refresh.SetSession")
 	}

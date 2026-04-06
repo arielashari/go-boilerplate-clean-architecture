@@ -9,6 +9,11 @@ INSERT INTO roles (
 SELECT * FROM roles
 WHERE id = $1 AND deleted_at IS NULL LIMIT 1;
 
+
+-- name: GetRoleByName :one
+SELECT * FROM roles
+WHERE name = $1 AND deleted_at IS NULL LIMIT 1;
+
 -- name: ListRoles :many
 SELECT * FROM roles
 WHERE deleted_at IS NULL

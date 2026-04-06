@@ -4,12 +4,13 @@ app:
   env: "dev"
 
 database:
-  host: "localhost"
-  port: 5432
-  user: "postgres"
-  password: "postgres"
-  name: "myapp_dev"
-  sslmode: "disable"
+  postgres:
+    host: "localhost"
+    port: 5432
+    user: "postgres"
+    password: "password"
+    name: "mydb"
+    sslmode: "disable"
 
 redis:
   host: "localhost"
@@ -20,4 +21,17 @@ redis:
 jwt:
   secret: "dev-secret-not-for-production"
   access_expire_minutes: 15
-  refresh_expire_hours: 168
+  refresh_expire_minutes: 168
+
+ratelimit:
+  max_requests: 100
+  expiration_seconds: 60
+
+cors:
+  allow_origins:
+    - "*"
+  allow_headers:
+    - "Origin"
+    - "Content-Type"
+    - "Accept"
+    - "Authorization"

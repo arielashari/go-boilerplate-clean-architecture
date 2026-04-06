@@ -36,8 +36,7 @@ type UpdateUserRequest struct {
 }
 
 type GetAllUsersRequest struct {
-	Page    int    `query:"page" validate:"required,min=1"`
-	Limit   int    `query:"limit" validate:"required,min=1"`
+	PaginationRequest
 	Search  string `query:"search"`
 	RoleID  string `query:"role_id"`
 	SortBy  string `query:"sort_by"`

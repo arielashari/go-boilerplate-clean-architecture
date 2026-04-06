@@ -7,6 +7,8 @@ import (
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/middleware"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/usecase"
 	"github.com/gofiber/fiber/v3"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
 type Router struct {
@@ -30,6 +32,24 @@ func NewRouter(app *fiber.App, userHandler *handler.UserHandler, authHandler *ha
 }
 
 func (r *Router) Setup() {
+
+	r.App.Get("/health", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+			"env":    r.cfg.App.Env,
+		})
+	})
+
+	r.App.Get("/ready", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ready",
+		})
+	})
+
+	r.App.Get("/metrics", func(c fiber.Ctx) error {
+		fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler())(c.RequestCtx())
+		return nil
+	})
 
 	// Serve API reference at /documentation
 	r.App.Get("/documentation", func(c fiber.Ctx) error {

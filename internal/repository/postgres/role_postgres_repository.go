@@ -54,6 +54,15 @@ func (r *rolePostgresRepository) GetByID(ctx context.Context, id string) (*entit
 	return r.toEntity(row), nil
 }
 
+func (r *rolePostgresRepository) GetByName(ctx context.Context, name string) (*entity.Role, error) {
+	row, err := r.queries.GetRoleByName(ctx, name)
+	if err != nil {
+		return nil, ParseError(err, "RoleRepository.GetByName")
+	}
+
+	return r.toEntity(row), nil
+}
+
 func (r *rolePostgresRepository) List(ctx context.Context, limit, offset int) ([]*entity.Role, error) {
 	rows, err := r.queries.ListRoles(ctx, sqlc.ListRolesParams{
 		Limit:  int32(limit),

@@ -77,6 +77,24 @@ func (q *Queries) GetRoleByID(ctx context.Context, id string) (Role, error) {
 	return i, err
 }
 
+const getRoleByName = `-- name: GetRoleByName :one
+SELECT id, name, created_at, updated_at, deleted_at FROM roles
+WHERE name = $1 AND deleted_at IS NULL LIMIT 1
+`
+
+func (q *Queries) GetRoleByName(ctx context.Context, name string) (Role, error) {
+	row := q.db.QueryRow(ctx, getRoleByName, name)
+	var i Role
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const listRoles = `-- name: ListRoles :many
 SELECT id, name, created_at, updated_at, deleted_at FROM roles
 WHERE deleted_at IS NULL

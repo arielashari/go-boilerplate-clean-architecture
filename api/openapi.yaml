@@ -533,11 +533,15 @@ components:
         last_name: { type: string, example: "Doe" }
         phone_prefix: { type: string, example: "+62" }
         phone_number: { type: string, example: "812345678" }
+        role_id: { type: string, example: "role_id_example" }
       required:
         - email
         - password
         - first_name
         - last_name
+        - phone_prefix
+        - phone_number
+        - role_id
     
     RefreshTokenRequest:
       type: object

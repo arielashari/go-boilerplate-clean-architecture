@@ -19,6 +19,7 @@ type UserPostgresRepository interface {
 type RolePostgresRepository interface {
 	Create(ctx context.Context, role *Role) (*Role, error)
 	GetByID(ctx context.Context, id string) (*Role, error)
+	GetByName(ctx context.Context, name string) (*Role, error)
 	Update(ctx context.Context, role *Role) (*Role, error)
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, limit, offset int) ([]*Role, error)
@@ -29,4 +30,8 @@ type AuthRedisRepository interface {
 	SetSession(ctx context.Context, userID, tokenID string, duration time.Duration) error
 	CheckSession(ctx context.Context, userID, tokenID string) (bool, error)
 	DeleteSession(ctx context.Context, userID string) error
+}
+
+type Transactor interface {
+	WithTx(ctx context.Context, fn func(ctx context.Context) error) error
 }

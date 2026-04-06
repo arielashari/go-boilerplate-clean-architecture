@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/entity"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/apperror"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -36,7 +37,7 @@ func ParseError(err error, operation string) error {
 		}
 	}
 
-	return entity.NewAppError(entity.CodeInternal, "database operation failed").
+	return apperror.New(apperror.CodeInternal, "database operation failed").
 		WithInternal(err).
 		WithOperation(operation)
 }
