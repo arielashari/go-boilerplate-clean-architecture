@@ -7,40 +7,40 @@ import (
 )
 
 type Config struct {
-	App       AppConfig
-	Database  DatabaseConfig
-	Redis     RedisConfig
-	JWT       JWTConfig
-	RateLimit RateLimitConfig
-	CORS      CORSConfig
-	Mail      MailConfig
+	App       AppConfig       `mapstructure:"app"`
+	Database  DatabaseConfig  `mapstructure:"database"`
+	Redis     RedisConfig     `mapstructure:"redis"`
+	JWT       JWTConfig       `mapstructure:"jwt"`
+	RateLimit RateLimitConfig `mapstructure:"ratelimit"`
+	CORS      CORSConfig      `mapstructure:"cors"`
+	SMTP      SMTPConfig      `mapstructure:"smtp"`
 }
 
 type AppConfig struct {
-	Name     string
-	Port     int
-	Env      string
+	Name     string `mapstructure:"name"`
+	Port     int    `mapstructure:"port"`
+	Env      string `mapstructure:"env"`
 	LogLevel string `mapstructure:"log_level"`
 }
 
 type DatabaseConfig struct {
-	Postgres PostgresConfig
+	Postgres PostgresConfig `mapstructure:"postgres"`
 }
 
 type PostgresConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	Name     string
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Name     string `mapstructure:"name"`
 	SSLMode  string `mapstructure:"ssl_mode"`
 }
 
 type RedisConfig struct {
-	Host     string
-	Port     int
-	Password string
-	DB       int
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
 }
 
 type JWTConfig struct {
@@ -59,12 +59,12 @@ type CORSConfig struct {
 	AllowHeaders []string `mapstructure:"allow_headers"`
 }
 
-type MailConfig struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	From     string
+type SMTPConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	From     string `mapstructure:"from"`
 	FromName string `mapstructure:"from_name"`
 }
 

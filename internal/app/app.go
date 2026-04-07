@@ -37,7 +37,11 @@ func NewApp(cfg *configs.Config) *App {
 		panic(err)
 	}
 
-	mailer, err := mailer.NewSMTPMailer(cfg.Mail)
+	mailer, err := mailer.NewSMTPMailer(&cfg.SMTP)
+	if err != nil {
+		log.Error("failed to connect to mailer service", "error", err)
+		panic(err)
+	}
 
 	redis, err := database.NewRedisClient(cfg.Redis)
 	if err != nil {

@@ -13,12 +13,12 @@ import (
 )
 
 type SMTPMailer struct {
-	cfg       configs.MailConfig
+	cfg       *configs.SMTPConfig
 	dialer    *gomail.Dialer
 	templates *template.Template
 }
 
-func NewSMTPMailer(cfg configs.MailConfig) (*SMTPMailer, error) {
+func NewSMTPMailer(cfg *configs.SMTPConfig) (*SMTPMailer, error) {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(filename)
 	pattern := filepath.Join(dir, "templates", "*.html")
@@ -29,7 +29,6 @@ func NewSMTPMailer(cfg configs.MailConfig) (*SMTPMailer, error) {
 	}
 
 	dialer := gomail.NewDialer(cfg.Host, cfg.Port, cfg.Username, cfg.Password)
-
 	return &SMTPMailer{
 		cfg:       cfg,
 		dialer:    dialer,
