@@ -36,6 +36,7 @@ Client --> Fiber HTTP Router --> HTTP Handlers
 - Fiber v3
 - PostgreSQL
 - Redis
+- AWS S3 (aws-sdk-go-v2)
 - sqlc
 - pgx
 - JWT
@@ -56,6 +57,7 @@ Client --> Fiber HTTP Router --> HTTP Handlers
   - `postgres/` - PostgreSQL repository implementations and transaction support.
   - `redis/` - Redis session repository.
 - `internal/usecase/` - business logic layer for auth, user, and role flows.
+- `pkg/storage/` - file storage implementations (AWS S3).
 - `pkg/apperror/` - standardized application error package.
 - `pkg/database/` - database connection, migration, and cleanup helpers.
 - `pkg/jwt/` - JWT generation and parsing utilities.
@@ -182,6 +184,14 @@ cors:
     - "Content-Type"
     - "Accept"
     - "Authorization"
+
+s3:
+  access_key_id: "your-access-key-id"
+  secret_access_key: "your-secret-access-key"
+  region: "us-east-1"
+  bucket: "your-bucket-name"
+  base_url: "https://your-bucket-name.s3.amazonaws.com"
+  presign_expiry_minutes: 15
 ```
 
 ## API endpoints overview
@@ -208,6 +218,16 @@ cors:
 - `GET /api/v1/roles/:id` - retrieve a role by ID.
 - `PATCH /api/v1/roles/:id` - update a role.
 - `DELETE /api/v1/roles/:id` - delete a role.
+
+### Files (protected)
+
+- `POST /api/v1/files/upload` - upload a file to S3 storage.
+  - Form fields: `entity_type`, `entity_id`, `file` (multipart)
+  - Supports image/jpeg, image/png, image/webp, application/pdf
+  - Max file size: 10MB
+  - Returns S3 key and public URL
+- `DELETE /api/v1/files?key=<s3-key>` - delete a file from S3 storage by key.
+- `GET /api/v1/files/presigned?key=<s3-key>&operation=GET|PUT` - generate a presigned URL for signed access.
 
 ### Docs & metadata
 
@@ -244,6 +264,48 @@ Handlers validate and bind requests, call use cases, and return serialized respo
 Transaction support is implemented in `internal/repository/postgres/transactor.go`.
 The `AuthUseCase.Register` flow wraps user creation inside `transactor.WithTx`, which begins a transaction, executes repository actions using an injected transaction context, and commits only if all operations succeed.
 If the callback returns an error, the transaction rolls back automatically.
+
+## AWS S3 File Storage
+
+The application integrates AWS S3 for file storage through the `FileUploadUseCase` and `S3Storage` implementation.
+
+### Configuration
+
+Set the following environment variables or update `configs/config.dev.yaml`:
+
+- `s3.access_key_id` - AWS access key ID (use IAM roles in production)
+- `s3.secret_access_key` - AWS secret access key (use IAM roles in production)
+- `s3.region` - AWS region (e.g., us-east-1)
+- `s3.bucket` - S3 bucket name
+- `s3.base_url` - Public base URL for S3 objects
+- `s3.presign_expiry_minutes` - Expiration time for presigned URLs (default: 15)
+
+### Features
+
+- **Direct streaming**: Files are streamed directly to S3 without buffering in memory
+- **File validation**: Enforces maximum file size (10MB) and allowed MIME types (JPEG, PNG, WebP, PDF)
+- **Unique naming**: Generates UUID-based S3 keys to prevent collisions
+- **Presigned URLs**: Supports time-limited URLs for both GET (download) and PUT (upload) operations
+- **Error handling**: All S3 errors wrapped with context via `apperror` package
+
+### File Upload Flow
+
+1. Client submits multipart form to `POST /api/v1/files/upload` with:
+   - `entity_type` - classification of the entity (e.g., "user", "profile")
+   - `entity_id` - ID of the owning entity
+   - `file` - the file to upload
+
+2. Handler validates form fields, opens file stream
+3. Usecase validates file size and MIME type
+4. Storage implementation streams file directly to S3
+5. Response includes S3 key and public URL
+
+### Production Notes
+
+- **Credentials**: Use AWS IAM roles instead of access keys in production
+- **Presigned URLs**: Current implementation returns public URLs; for time-limited signatures, implement SigV4 presigning
+- **Bucket policies**: Configure bucket CORS and policies to allow your domain access
+- **Storage cleanup**: Consider implementing a background job to clean up orphaned files
 
 ## Error handling
 
