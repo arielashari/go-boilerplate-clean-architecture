@@ -13,7 +13,6 @@ import (
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/configs"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/middleware"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/response"
-	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/entity"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/apperror"
 	customervalidator "github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/validator"
 	"github.com/go-playground/validator/v10"
@@ -37,7 +36,7 @@ func (v *structValidator) Validate(out any) error {
 	return v.validate.Struct(out)
 }
 
-func NewFiberServer(cfg configs.Config, authRepo entity.AuthRedisRepository) Server {
+func NewFiberServer(cfg configs.Config) Server {
 
 	fs := &fiberServer{
 		cfg: &cfg,
@@ -123,7 +122,7 @@ func (fs *fiberServer) GlobalErrorHandler(c fiber.Ctx, err error) error {
 
 	if appErr, ok := apperror.As(err); ok {
 		statusCode := mapCodeToStatus(appErr.Code)
-		fs.logAppError(appErr, statusCode)
+		fs.logAppError(c.Context(), appErr, statusCode)
 		return response.Error(c, statusCode, appErr.Message, nil)
 	}
 
@@ -161,13 +160,13 @@ func mapCodeToStatus(code apperror.ErrorCode) int {
 	}
 }
 
-func (fs *fiberServer) logAppError(appErr *apperror.AppError, status int) {
+func (fs *fiberServer) logAppError(ctx context.Context, appErr *apperror.AppError, status int) {
 	level := slog.LevelWarn
 	if status >= 500 {
 		level = slog.LevelError
 	}
 
-	slog.Log(context.Background(), level, "application error",
+	slog.Log(ctx, level, "application error",
 		"code", string(appErr.Code),
 		"message", appErr.Message,
 		"status", status,

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type UserPostgresRepository interface {
+type UserRepository interface {
 	Create(ctx context.Context, user *User) (*User, error)
 	GetByID(ctx context.Context, id string) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
@@ -16,7 +16,7 @@ type UserPostgresRepository interface {
 	Count(ctx context.Context) (int64, error)
 }
 
-type RolePostgresRepository interface {
+type RoleRepository interface {
 	Create(ctx context.Context, role *Role) (*Role, error)
 	GetByID(ctx context.Context, id string) (*Role, error)
 	GetByName(ctx context.Context, name string) (*Role, error)
@@ -26,7 +26,7 @@ type RolePostgresRepository interface {
 	Count(ctx context.Context) (int64, error)
 }
 
-type AuthRedisRepository interface {
+type AuthRepository interface {
 	SetSession(ctx context.Context, userID, tokenID string, duration time.Duration) error
 	CheckSession(ctx context.Context, userID, tokenID string) (bool, error)
 	DeleteSession(ctx context.Context, userID string) error
@@ -34,4 +34,11 @@ type AuthRedisRepository interface {
 
 type Transactor interface {
 	WithTx(ctx context.Context, fn func(ctx context.Context) error) error
+}
+
+type EmailSender interface {
+	SendVerificationEmail(ctx context.Context, to, name, otp string) error
+	SendPasswordResetEmail(ctx context.Context, to, name, resetLink string) error
+	SendWelcomeEmail(ctx context.Context, to, name string) error
+	SendNotificationEmail(ctx context.Context, to, name, subject, message string) error
 }

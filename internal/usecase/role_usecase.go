@@ -17,10 +17,10 @@ type RoleUseCase interface {
 }
 
 type roleUseCase struct {
-	roleRepository entity.RolePostgresRepository
+	roleRepository entity.RoleRepository
 }
 
-func NewRoleUseCase(roleRepository entity.RolePostgresRepository) RoleUseCase {
+func NewRoleUseCase(roleRepository entity.RoleRepository) RoleUseCase {
 	return &roleUseCase{roleRepository: roleRepository}
 }
 

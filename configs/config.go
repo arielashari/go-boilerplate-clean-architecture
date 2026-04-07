@@ -13,6 +13,7 @@ type Config struct {
 	JWT       JWTConfig
 	RateLimit RateLimitConfig
 	CORS      CORSConfig
+	Mail      MailConfig
 }
 
 type AppConfig struct {
@@ -56,6 +57,15 @@ type RateLimitConfig struct {
 type CORSConfig struct {
 	AllowOrigins []string `mapstructure:"allow_origins"`
 	AllowHeaders []string `mapstructure:"allow_headers"`
+}
+
+type MailConfig struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
+	From     string
+	FromName string `mapstructure:"from_name"`
 }
 
 func Load() (*Config, error) {

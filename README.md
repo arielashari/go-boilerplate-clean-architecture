@@ -85,10 +85,10 @@ cd go-boilerplate-clean-architecture
 2. Copy configuration
 
 ```bash
-cp configs/config.dev.yaml configs/config.yaml
+cp configs/config.example.yaml configs/config.dev.yaml
 ```
 
-3. Update `configs/config.yaml` to match your local Postgres and Redis settings.
+3. Update `configs/config.dev.yaml` to match your local Postgres and Redis settings.
 
 4. Start local dependencies
 

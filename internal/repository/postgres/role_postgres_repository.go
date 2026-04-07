@@ -13,11 +13,11 @@ type rolePostgresRepository struct {
 	pool    *pgxpool.Pool
 }
 
-var _ entity.RolePostgresRepository = (*rolePostgresRepository)(nil)
+var _ entity.RoleRepository = (*rolePostgresRepository)(nil)
 
 func NewRolePostgresRepository(
 	db *pgxpool.Pool,
-) entity.RolePostgresRepository {
+) entity.RoleRepository {
 	return &rolePostgresRepository{queries: sqlc.New(db), pool: db}
 }
 

@@ -17,6 +17,7 @@ func setupAuthUseCase(t *testing.T) (usecase.AuthUseCase, *mocks.MockAuthReposit
 	mockAuthRepo := new(mocks.MockAuthRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockTransactor := new(mocks.MockTransactor)
+	mockMailer := new(mocks.MockEmailSender)
 	cfg := &configs.Config{
 		JWT: configs.JWTConfig{
 			Secret:               "test-secret",
@@ -24,7 +25,7 @@ func setupAuthUseCase(t *testing.T) (usecase.AuthUseCase, *mocks.MockAuthReposit
 			RefreshExpireMinutes: 10080,
 		},
 	}
-	uc := usecase.NewAuthUseCase(mockAuthRepo, mockUserRepo, mockTransactor, cfg)
+	uc := usecase.NewAuthUseCase(mockAuthRepo, mockUserRepo, mockTransactor, mockMailer, cfg)
 	t.Cleanup(func() {
 		mockAuthRepo.AssertExpectations(t)
 		mockUserRepo.AssertExpectations(t)

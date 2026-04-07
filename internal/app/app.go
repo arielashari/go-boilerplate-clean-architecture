@@ -12,6 +12,7 @@ import (
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/usecase"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/database"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/logger"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/mailer"
 )
 
 type App struct {
@@ -36,6 +37,8 @@ func NewApp(cfg *configs.Config) *App {
 		panic(err)
 	}
 
+	mailer, err := mailer.NewSMTPMailer(cfg.Mail)
+
 	redis, err := database.NewRedisClient(cfg.Redis)
 	if err != nil {
 		log.Error("failed to connect to redis", "error", err)
@@ -55,13 +58,13 @@ func NewApp(cfg *configs.Config) *App {
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	roleUseCase := usecase.NewRoleUseCase(roleRepo)
 
-	authUseCase := usecase.NewAuthUseCase(authRepo, userRepo, transactor, cfg)
+	authUseCase := usecase.NewAuthUseCase(authRepo, userRepo, transactor, mailer, cfg)
 
 	authHandler := handler.NewAuthHandler(authUseCase)
 	userHandler := handler.NewUserHandler(userUseCase)
 	roleHandler := handler.NewRoleHandler(roleUseCase)
 
-	httpserver := http.NewFiberServer(*cfg, authRepo)
+	httpserver := http.NewFiberServer(*cfg)
 
 	r := router.NewRouter(httpserver.GetFiberApp(), userHandler, authHandler, roleHandler, cfg, authUseCase)
 	r.Setup()

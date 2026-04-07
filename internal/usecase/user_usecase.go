@@ -18,10 +18,10 @@ type UserUseCase interface {
 }
 
 type userUseCase struct {
-	userRepository entity.UserPostgresRepository
+	userRepository entity.UserRepository
 }
 
-func NewUserUseCase(userRepository entity.UserPostgresRepository) UserUseCase {
+func NewUserUseCase(userRepository entity.UserRepository) UserUseCase {
 	return &userUseCase{userRepository: userRepository}
 }
 

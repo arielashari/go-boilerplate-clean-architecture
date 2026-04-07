@@ -13,9 +13,9 @@ type authRedisRepository struct {
 	client *redis.Client
 }
 
-var _ entity.AuthRedisRepository = (*authRedisRepository)(nil)
+var _ entity.AuthRepository = (*authRedisRepository)(nil)
 
-func NewAuthRedisRepository(client *redis.Client) entity.AuthRedisRepository {
+func NewAuthRedisRepository(client *redis.Client) entity.AuthRepository {
 	return &authRedisRepository{client: client}
 }
 

@@ -49,7 +49,7 @@ func main() {
 
 }
 
-func seedRoles(ctx context.Context, roleRepo entity.RolePostgresRepository) {
+func seedRoles(ctx context.Context, roleRepo entity.RoleRepository) {
 	roles := []string{"Admin", "User"}
 
 	for _, roleName := range roles {
@@ -76,7 +76,7 @@ func seedRoles(ctx context.Context, roleRepo entity.RolePostgresRepository) {
 	}
 }
 
-func seedUsers(ctx context.Context, userRepo entity.UserPostgresRepository, roleRepo entity.RolePostgresRepository) {
+func seedUsers(ctx context.Context, userRepo entity.UserRepository, roleRepo entity.RoleRepository) {
 	adminRole, err := roleRepo.GetByName(ctx, "Admin")
 	if err != nil || adminRole == nil && !errors.Is(err, entity.ErrNotFound) {
 		log.Fatalf("cannot seed users: Admin role not found")

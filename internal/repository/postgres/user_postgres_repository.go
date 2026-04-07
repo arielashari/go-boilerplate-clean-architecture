@@ -15,11 +15,11 @@ type userPostgresRepository struct {
 	pool    *pgxpool.Pool
 }
 
-var _ entity.UserPostgresRepository = (*userPostgresRepository)(nil)
+var _ entity.UserRepository = (*userPostgresRepository)(nil)
 
 func NewUserPostgresRepository(
 	db *pgxpool.Pool,
-) entity.UserPostgresRepository {
+) entity.UserRepository {
 	return &userPostgresRepository{queries: sqlc.New(db), pool: db}
 }
 

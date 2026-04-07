@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/configs"
@@ -25,17 +26,19 @@ type AuthUseCase interface {
 }
 
 type authUseCase struct {
-	authRepository entity.AuthRedisRepository
-	userRepository entity.UserPostgresRepository
+	authRepository entity.AuthRepository
+	userRepository entity.UserRepository
 	transactor     entity.Transactor
+	mailer         entity.EmailSender
 	cfg            *configs.Config
 }
 
-func NewAuthUseCase(authRepo entity.AuthRedisRepository, userRepo entity.UserPostgresRepository, transactor entity.Transactor, cfg *configs.Config) AuthUseCase {
+func NewAuthUseCase(authRepo entity.AuthRepository, userRepo entity.UserRepository, transactor entity.Transactor, mailer entity.EmailSender, cfg *configs.Config) AuthUseCase {
 	return &authUseCase{
 		authRepository: authRepo,
 		userRepository: userRepo,
 		transactor:     transactor,
+		mailer:         mailer,
 		cfg:            cfg,
 	}
 }
@@ -105,6 +108,12 @@ func (a *authUseCase) Register(ctx context.Context, request *model.RegisterReque
 	if err != nil {
 		return nil, err
 	}
+
+	go func() {
+		if err := a.mailer.SendWelcomeEmail(context.Background(), createdUser.Email, createdUser.FirstName); err != nil {
+			slog.Warn("failed to send welcome email", "error", err, "userID", createdUser.ID)
+		}
+	}()
 
 	return mapper.UserToResponse(createdUser), nil
 }
