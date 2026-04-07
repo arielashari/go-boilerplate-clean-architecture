@@ -14,6 +14,7 @@ type Config struct {
 	RateLimit RateLimitConfig `mapstructure:"ratelimit"`
 	CORS      CORSConfig      `mapstructure:"cors"`
 	SMTP      SMTPConfig      `mapstructure:"smtp"`
+	S3        S3Config        `mapstructure:"s3"`
 }
 
 type AppConfig struct {
@@ -66,6 +67,15 @@ type SMTPConfig struct {
 	Password string `mapstructure:"password"`
 	From     string `mapstructure:"from"`
 	FromName string `mapstructure:"from_name"`
+}
+
+type S3Config struct {
+	AccessKeyID          string `mapstructure:"access_key_id"`
+	SecretAccessKey      string `mapstructure:"secret_access_key"`
+	Region               string `mapstructure:"region"`
+	Bucket               string `mapstructure:"bucket"`
+	BaseURL              string `mapstructure:"base_url"`
+	PresignExpiryMinutes int    `mapstructure:"presign_expiry_minutes"`
 }
 
 func Load() (*Config, error) {

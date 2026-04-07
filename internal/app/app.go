@@ -13,6 +13,7 @@ import (
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/database"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/logger"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/mailer"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/storage"
 )
 
 type App struct {
@@ -68,9 +69,18 @@ func NewApp(cfg *configs.Config) *App {
 	userHandler := handler.NewUserHandler(userUseCase)
 	roleHandler := handler.NewRoleHandler(roleUseCase)
 
+	s3Storage, err := storage.NewS3Storage(&cfg.S3)
+	if err != nil {
+		log.Error("failed to initialize S3 client", "error", err)
+		panic(err)
+	}
+
+	fileUploadUseCase := usecase.NewFileUploadUseCase(s3Storage)
+	fileHandler := handler.NewFileHandler(fileUploadUseCase)
+
 	httpserver := http.NewFiberServer(*cfg)
 
-	r := router.NewRouter(httpserver.GetFiberApp(), userHandler, authHandler, roleHandler, cfg, authUseCase)
+	r := router.NewRouter(httpserver.GetFiberApp(), userHandler, authHandler, roleHandler, fileHandler, cfg, authUseCase)
 	r.Setup()
 
 	return &App{

@@ -16,16 +16,18 @@ type Router struct {
 	UserHandler *handler.UserHandler
 	AuthHandler *handler.AuthHandler
 	RoleHandler *handler.RoleHandler
+	FileHandler *handler.FileHandler
 	cfg         *configs.Config
 	authUseCase usecase.AuthUseCase
 }
 
-func NewRouter(app *fiber.App, userHandler *handler.UserHandler, authHandler *handler.AuthHandler, roleHandler *handler.RoleHandler, cfg *configs.Config, authUseCase usecase.AuthUseCase) *Router {
+func NewRouter(app *fiber.App, userHandler *handler.UserHandler, authHandler *handler.AuthHandler, roleHandler *handler.RoleHandler, fileHandler *handler.FileHandler, cfg *configs.Config, authUseCase usecase.AuthUseCase) *Router {
 	return &Router{
 		App:         app,
 		UserHandler: userHandler,
 		AuthHandler: authHandler,
 		RoleHandler: roleHandler,
+		FileHandler: fileHandler,
 		cfg:         cfg,
 		authUseCase: authUseCase,
 	}
@@ -78,4 +80,5 @@ func (r *Router) Setup() {
 	protected := v1.Group("/", middleware.JWTMiddleware(&r.cfg.JWT, r.authUseCase))
 	r.UserHandler.RegisterRoutes(protected)
 	r.RoleHandler.RegisterRoutes(protected)
+	r.FileHandler.RegisterRoutes(protected)
 }

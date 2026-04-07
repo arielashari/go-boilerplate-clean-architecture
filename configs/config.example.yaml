@@ -43,3 +43,11 @@ smtp:
   password: "your-app-password"
   from: "your@gmail.com"
   from_name: "Your App"
+
+s3:
+  access_key_id: "your-access-key-id"
+  secret_access_key: "your-secret-access-key"
+  region: "us-east-1"
+  bucket: "your-bucket-name"
+  base_url: "https://your-bucket-name.s3.amazonaws.com"
+  presign_expiry_minutes: 15

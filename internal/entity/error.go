@@ -11,4 +11,7 @@ var (
 	ErrInvalidCredentials = apperror.New(apperror.CodeInvalidCreds, "invalid email or password")
 	ErrEmailAlreadyExists = apperror.New(apperror.CodeEmailTaken, "email already exists")
 	ErrInternal           = apperror.New(apperror.CodeInternal, "internal server error")
+	ErrFileTooLarge       = apperror.New(apperror.CodeValidation, "file size exceeds maximum allowed size")
+	ErrInvalidFileType    = apperror.New(apperror.CodeValidation, "file type not supported")
+	ErrStorageUnavailable = apperror.New(apperror.CodeUnavailable, "file storage service is not initialized")
 )

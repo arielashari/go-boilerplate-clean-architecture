@@ -42,3 +42,10 @@ type EmailSender interface {
 	SendWelcomeEmail(ctx context.Context, to, name string) error
 	SendNotificationEmail(ctx context.Context, to, name, subject, message string) error
 }
+
+type FileStorage interface {
+	Upload(ctx context.Context, input *UploadInput) (*UploadResult, error)
+	Delete(ctx context.Context, key string) error
+	GetPresignedURL(ctx context.Context, key string, operation string) (string, error)
+	GetPublicURL(key string) string
+}
