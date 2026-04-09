@@ -53,11 +53,15 @@ func NewPostgresConnection(cfg configs.Config, logger *slog.Logger) (*pgxpool.Po
 	if err != nil {
 		return nil, err
 	}
-	poolConfig.MaxConns = 25
-	poolConfig.MinConns = 5
-	poolConfig.MaxConnLifetime = 1 * time.Hour
-	poolConfig.MaxConnIdleTime = 30 * time.Minute
-	poolConfig.HealthCheckPeriod = 1 * time.Minute
+	maxLifetime, _ := time.ParseDuration(cfg.Database.Postgres.MaxConnLifetime)
+	maxIdle, _ := time.ParseDuration(cfg.Database.Postgres.MaxConnIdleTime)
+	healthCheckPeriod, _ := time.ParseDuration(cfg.Database.Postgres.HealthCheckPeriod)
+
+	poolConfig.MaxConns = cfg.Database.Postgres.MaxConns
+	poolConfig.MinConns = cfg.Database.Postgres.MinConns
+	poolConfig.MaxConnLifetime = maxLifetime
+	poolConfig.MaxConnIdleTime = maxIdle
+	poolConfig.HealthCheckPeriod = healthCheckPeriod
 
 	if cfg.App.Env != "prod" {
 		poolConfig.ConnConfig.Tracer = &tracelog.TraceLog{

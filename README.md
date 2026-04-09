@@ -344,7 +344,12 @@ make test-cover
 
 Contributions are welcome.
 
-1. Fork the repository.
+This repository enforces a protected `master` branch policy. All changes must be made through pull requests.
+
+- If you have write access, create a branch from `master`, make your changes, and open a pull request.
+- If you are an outside collaborator, fork the repository, push your changes to a branch in your fork, and submit a pull request from your fork into this repository.
+
+1. Fork the repository or branch from `master`.
 2. Create a feature branch.
 3. Run `go test ./...` before submitting.
 4. Keep implementation details in the correct layer: delivery, usecase, repository, entity.
