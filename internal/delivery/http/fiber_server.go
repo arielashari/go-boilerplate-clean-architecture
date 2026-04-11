@@ -11,8 +11,11 @@ import (
 	"time"
 
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/configs"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/handler"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/middleware"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/response"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/router"
+	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/usecase"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/apperror"
 	customervalidator "github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/pkg/validator"
 	"github.com/go-playground/validator/v10"
@@ -105,8 +108,9 @@ func (fs *fiberServer) Start() {
 	}
 }
 
-func (fs *fiberServer) GetFiberApp() *fiber.App {
-	return fs.app
+func (fs *fiberServer) RegisterRoutes(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, roleHandler *handler.RoleHandler, fileHandler *handler.FileHandler, cfg *configs.Config, authUseCase usecase.AuthUseCase) {
+	r := router.NewRouter(fs.app, userHandler, authHandler, roleHandler, fileHandler, cfg, authUseCase)
+	r.Setup()
 }
 
 func (fs *fiberServer) GlobalErrorHandler(c fiber.Ctx, err error) error {

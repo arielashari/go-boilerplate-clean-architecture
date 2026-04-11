@@ -6,7 +6,6 @@ import (
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/configs"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/handler"
-	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/delivery/http/router"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/repository/postgres"
 	_redis "github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/repository/redis"
 	"github.com/Primuse-Pte-Ltd/go-boilerplate-clean-architecture/internal/usecase"
@@ -79,9 +78,7 @@ func NewApp(cfg *configs.Config) *App {
 	fileHandler := handler.NewFileHandler(fileUploadUseCase)
 
 	httpserver := http.NewFiberServer(*cfg)
-
-	r := router.NewRouter(httpserver.GetFiberApp(), userHandler, authHandler, roleHandler, fileHandler, cfg, authUseCase)
-	r.Setup()
+	httpserver.RegisterRoutes(userHandler, authHandler, roleHandler, fileHandler, cfg, authUseCase)
 
 	return &App{
 		Config:        cfg,
